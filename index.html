@@ -1,0 +1,2223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CM Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F4F1EC;
+      --bg2: #FFFFFF;
+      --bg3: #EFEAE4;
+      --border: #E6E1DA;
+      --text: #1F1F1F;
+      --text2: #5A5A5A;
+      --text3: #8C8C8C;
+      --primary: #7B3FE4;
+      --primary-dark: #5A2A5A;
+      --primary-bg: #F3EEF9;
+      --sidebar-bg: #5A2A5A;
+      --sidebar-text: #F3EAF7;
+      --sidebar-active: #E8D4F8;
+      --sidebar-active-bg: rgba(255,255,255,0.08);
+      --sidebar-border: rgba(255,255,255,0.10);
+      --success: #6E9E8E;
+      --success-bg: #EEF5F3;
+      --warning: #D6A663;
+      --warning-bg: #FDF5EA;
+      --error: #C06C6C;
+      --error-bg: #FAF0F0;
+      --radius: 8px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    /* ─────────────────── LANDING ─────────────────── */
+    #screen-landing {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--bg);
+    }
+
+    .landing-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(90,42,90,0.08);
+    }
+
+    .landing-logo {
+      width: 56px;
+      height: 56px;
+      background: var(--sidebar-bg);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--sidebar-active);
+      letter-spacing: -1px;
+    }
+
+    .landing-card h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .landing-card p {
+      font-size: 13px;
+      color: var(--text2);
+      margin-bottom: 32px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+      text-align: left;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .input-base {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      margin-bottom: 20px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .input-base:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(123,63,228,0.12);
+      background: var(--bg2);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 11px 20px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { background: var(--text3); cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      padding: 9px 16px;
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-secondary:hover { background: var(--border); }
+
+    .btn-danger {
+      padding: 9px 16px;
+      background: var(--error-bg);
+      color: var(--error);
+      border: 1px solid #f0c0c0;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-danger:hover { background: #f8dede; }
+
+    /* ─────────────────── APP SHELL ─────────────────── */
+    #screen-app {
+      display: none;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #sidebar {
+      position: fixed;
+      left: 0; top: 0;
+      width: 200px;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    .sidebar-brand {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--sidebar-border);
+      color: var(--sidebar-text);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      gap: 10px;
+    }
+
+    .sidebar-brand-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--sidebar-active-bg);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--sidebar-active);
+      flex-shrink: 0;
+    }
+
+    #sidebar nav {
+      flex: 1;
+      padding: 12px 8px;
+      overflow-y: auto;
+    }
+
+    .nav-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: transparent;
+      border: none;
+      border-left: 2.5px solid transparent;
+      color: var(--sidebar-text);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+      text-align: left;
+    }
+
+    .nav-btn:hover { background: var(--sidebar-active-bg); }
+
+    .nav-btn.active {
+      background: var(--sidebar-active-bg);
+      color: var(--sidebar-active);
+      border-left-color: var(--sidebar-active);
+      margin-left: -2px;
+    }
+
+    .nav-btn svg { flex-shrink: 0; width: 16px; height: 16px; }
+
+    .sidebar-user {
+      padding: 14px 16px;
+      border-top: 1px solid var(--sidebar-border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--sidebar-active);
+      color: var(--sidebar-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .sidebar-user-info p:first-child {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--sidebar-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+
+    .sidebar-user-info p:last-child {
+      font-size: 11px;
+      color: var(--sidebar-active);
+      opacity: 0.8;
+    }
+
+    #main-content {
+      margin-left: 200px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─────────────────── SCREENS ─────────────────── */
+    .screen { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* HOME */
+    #screen-home {
+      overflow-y: auto;
+      padding: 32px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text2);
+      margin-bottom: 28px;
+    }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .start-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .start-row .btn-primary {
+      width: auto;
+      padding: 11px 28px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .session-table-header {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1fr 80px;
+      gap: 8px;
+      padding: 0 0 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .session-row {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1fr 1fr 80px;
+      gap: 8px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      transition: background 0.1s;
+    }
+
+    .session-row:last-child { border-bottom: none; }
+    .session-row:hover { background: var(--bg3); border-radius: 6px; }
+
+    .session-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .session-meta { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; }
+    .session-date { font-size: 12px; color: var(--text3); }
+
+    .score-chip {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .score-chip.good { background: var(--success-bg); color: var(--success); }
+    .score-chip.warn { background: var(--warning-bg); color: var(--warning); }
+    .score-chip.bad  { background: var(--error-bg);   color: var(--error);   }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text3);
+      font-size: 13px;
+    }
+
+    /* SIMULATION */
+    #screen-simulation {
+      display: none;
+      flex-direction: row;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #screen-simulation.active { display: flex; }
+
+    /* Left panel */
+    #sim-left {
+      width: 260px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: var(--bg2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sim-left-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sim-left-header h3 {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sim-panels {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Rapport */
+    .rapport-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .rapport-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .rapport-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+    .rapport-pct { font-size: 16px; font-weight: 700; }
+
+    .rapport-bar-track {
+      height: 6px;
+      background: var(--bg3);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .rapport-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease-out, background 0.4s;
+    }
+
+    .rapport-mood {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* Collapsible panel */
+    .collapsible {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .collapsible-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      text-align: left;
+    }
+
+    .collapsible-header:hover { background: var(--bg3); }
+
+    .collapsible-arrow {
+      transition: transform 0.2s;
+      color: var(--text3);
+      font-size: 10px;
+    }
+
+    .collapsible-body {
+      display: none;
+      padding: 0 12px 12px;
+    }
+
+    .collapsible-body.open { display: block; }
+
+    .info-row {
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+
+    .info-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+
+    .info-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* Right chat */
+    #sim-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .sim-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .sim-header h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .sim-header-meta {
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    .sim-header-actions { display: flex; gap: 8px; align-items: center; }
+
+    .timer-badge {
+      padding: 4px 10px;
+      background: var(--bg3);
+      border-radius: 20px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+      color: var(--text2);
+    }
+
+    /* Spanish banner */
+    .spanish-banner {
+      background: #FDF5EA;
+      border-bottom: 1px solid #e8d6a8;
+      padding: 8px 20px;
+      font-size: 12px;
+      color: #8B6914;
+      font-style: italic;
+      flex-shrink: 0;
+    }
+
+    /* Messages */
+    #messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .msg-wrap {
+      display: flex;
+      flex-direction: column;
+      animation: fadeUp 0.3s ease-out;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-wrap.cm { align-items: flex-end; }
+    .msg-wrap.child { align-items: flex-start; }
+
+    .msg-behavioral {
+      font-size: 11px;
+      color: var(--text3);
+      font-style: italic;
+      margin-bottom: 4px;
+      padding: 0 4px;
+    }
+
+    .msg-bubble {
+      max-width: 68%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .msg-wrap.child .msg-bubble {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px 14px 14px 14px;
+      color: var(--text);
+    }
+
+    .msg-wrap.cm .msg-bubble {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 14px 4px 14px 14px;
+    }
+
+    .msg-time {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 4px;
+      padding: 0 4px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px 14px 14px 14px;
+      max-width: 120px;
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .typing-dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: bounce 0.8s infinite;
+    }
+
+    .typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.30s; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); opacity: 0.4; }
+      50%       { transform: translateY(-4px); opacity: 1; }
+    }
+
+    /* Input area */
+    #sim-input-area {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-shrink: 0;
+    }
+
+    #msg-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      resize: none;
+      max-height: 120px;
+      line-height: 1.4;
+    }
+
+    #msg-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(123,63,228,0.10);
+      background: var(--bg2);
+    }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .send-btn:hover { background: var(--primary-dark); }
+    .send-btn:active { transform: scale(0.92); }
+    .send-btn:disabled { background: var(--text3); cursor: not-allowed; transform: none; }
+
+    /* AUDIT MODAL */
+    #audit-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    #audit-overlay.open { display: flex; }
+
+    .audit-modal {
+      background: var(--bg2);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 680px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .audit-modal-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .audit-modal-header h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .audit-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+    }
+
+    .audit-scores-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .audit-score-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .audit-score-val {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .audit-score-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .audit-section {
+      margin-bottom: 16px;
+    }
+
+    .audit-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .audit-narrative {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.6;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      white-space: pre-wrap;
+    }
+
+    .tic-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .tic-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .tic-status {
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .tic-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .tic-evidence {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px;
+    }
+
+    .audit-modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+
+    .safety-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .safety-badge.pass { background: var(--success-bg); color: var(--success); }
+    .safety-badge.fail { background: var(--error-bg); color: var(--error); }
+
+    /* LOADING OVERLAY */
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(244,241,236,0.85);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    #loading-overlay.open { display: flex; }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-msg {
+      font-size: 14px;
+      color: var(--text2);
+      font-weight: 500;
+    }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 18px;
+      background: var(--text);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 300;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      max-width: 320px;
+    }
+
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ADMIN */
+    #screen-admin {
+      overflow-y: auto;
+      padding: 32px;
+    }
+
+    .admin-table-header {
+      display: grid;
+      grid-template-columns: 1.5fr 2fr 1fr 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 0 0 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .admin-row {
+      display: grid;
+      grid-template-columns: 1.5fr 2fr 1fr 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .admin-row:last-child { border-bottom: none; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ LANDING ══════════════ -->
+<div id="screen-landing">
+  <div class="landing-card">
+    <div class="landing-logo">CM</div>
+    <h1>CM Simulator</h1>
+    <p>Case Manager Intake Training Platform</p>
+    <label class="field-label" for="cm-name-input">Your Name</label>
+    <input id="cm-name-input" class="input-base" type="text" placeholder="Enter your full name..." autocomplete="off" />
+    <button class="btn-primary" id="landing-enter-btn" disabled onclick="handleEnter()">Enter Simulator</button>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="screen-app">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">CM</div>
+      CM Simulator
+    </div>
+    <nav>
+      <button class="nav-btn active" id="nav-home" onclick="navigateTo('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </button>
+      <button class="nav-btn" id="nav-simulation" onclick="navigateTo('simulation')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        CM Simulation
+      </button>
+      <button class="nav-btn" id="nav-admin" onclick="navigateTo('admin')" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+        Admin
+      </button>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar" id="user-avatar">??</div>
+      <div class="sidebar-user-info">
+        <p id="user-name-display">Loading...</p>
+        <p>Case Manager</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div id="main-content">
+
+    <!-- HOME SCREEN -->
+    <div id="screen-home" class="screen active" style="display:block; overflow-y:auto; padding:32px;">
+      <div class="page-title" id="home-greeting">Welcome back</div>
+      <div class="page-subtitle">Start a new intake simulation or review your completed sessions.</div>
+
+      <div class="start-row">
+        <button class="btn-primary" onclick="startNewSession()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Start New Intake
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Session History</span>
+          <span id="session-count" style="font-size:12px; color:var(--text3)"></span>
+        </div>
+        <div class="session-table-header">
+          <span>Child Name (Packet)</span>
+          <span>A Number</span>
+          <span>Date</span>
+          <span>TIC Grade</span>
+          <span>Compliance</span>
+        </div>
+        <div id="session-list">
+          <div class="empty-state">No sessions yet. Start your first simulation above.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIMULATION SCREEN -->
+    <div id="screen-simulation" class="screen">
+      <!-- Left panel -->
+      <div id="sim-left">
+        <div class="sim-left-header">
+          <h3>Session Info</h3>
+        </div>
+        <div class="sim-panels">
+          <!-- Rapport -->
+          <div class="rapport-card">
+            <div class="rapport-label-row">
+              <span class="rapport-title">Rapport</span>
+              <span class="rapport-pct" id="rapport-pct" style="color:var(--primary)">10%</span>
+            </div>
+            <div class="rapport-bar-track">
+              <div class="rapport-bar-fill" id="rapport-bar" style="width:10%; background:var(--primary)"></div>
+            </div>
+            <div class="rapport-mood" id="rapport-mood" style="color:var(--primary)">Cautious/Hesitant</div>
+          </div>
+
+          <!-- Identity Panel -->
+          <div class="collapsible" id="panel-identity">
+            <button class="collapsible-header" onclick="togglePanel('identity')">
+              📋 DHS Packet
+              <span class="collapsible-arrow" id="arrow-identity">▼</span>
+            </button>
+            <div class="collapsible-body open" id="body-identity">
+              <div class="info-row"><div class="info-label">Full Name (Packet)</div><div class="info-value" id="pkt-name">—</div></div>
+              <div class="info-row"><div class="info-label">A Number</div><div class="info-value" id="pkt-anum" style="font-family:'DM Mono',monospace">—</div></div>
+              <div class="info-row"><div class="info-label">Date of Birth</div><div class="info-value" id="pkt-dob">—</div></div>
+              <div class="info-row"><div class="info-label">Country of Origin</div><div class="info-value" id="pkt-origin">—</div></div>
+              <div class="info-row"><div class="info-label">Medical</div><div class="info-value" id="pkt-medical">—</div></div>
+            </div>
+          </div>
+
+          <!-- Sponsor Panel -->
+          <div class="collapsible" id="panel-sponsor">
+            <button class="collapsible-header" onclick="togglePanel('sponsor')">
+              👤 Sponsor Info
+              <span class="collapsible-arrow" id="arrow-sponsor">▶</span>
+            </button>
+            <div class="collapsible-body" id="body-sponsor">
+              <div class="info-row"><div class="info-label">Sponsor Name</div><div class="info-value" id="pkt-sponsor">—</div></div>
+              <div class="info-row"><div class="info-label">Relationship</div><div class="info-value" id="pkt-rel">—</div></div>
+              <div class="info-row"><div class="info-label">Phone</div><div class="info-value" id="pkt-phone" style="font-family:'DM Mono',monospace">—</div></div>
+              <div class="info-row"><div class="info-label">Location</div><div class="info-value" id="pkt-location">—</div></div>
+            </div>
+          </div>
+
+          <!-- Timer -->
+          <div class="rapport-card">
+            <div class="rapport-label-row">
+              <span class="rapport-title">Session Timer</span>
+              <span class="rapport-pct" id="sim-timer" style="color:var(--text2); font-family:'DM Mono',monospace; font-size:15px">00:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right chat area -->
+      <div id="sim-right">
+        <div class="sim-header">
+          <div>
+            <div class="sim-header h2" id="sim-child-label" style="font-size:15px; font-weight:600; color:var(--text)">Intake Orientation</div>
+            <div class="sim-header-meta" id="sim-location-label">—</div>
+          </div>
+          <div class="sim-header-actions">
+            <span class="timer-badge" id="sim-timer-badge">00:00</span>
+            <button class="btn-danger" onclick="endSession()">End Session</button>
+          </div>
+        </div>
+
+        <div class="spanish-banner">
+          🌎 This child responds in Mexican Spanish. Conduct the orientation in Spanish.
+        </div>
+
+        <div id="messages-area">
+          <!-- messages injected here -->
+        </div>
+
+        <div id="sim-input-area">
+          <textarea id="msg-input" rows="1" placeholder="Type your message in Spanish..." oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN SCREEN -->
+    <div id="screen-admin" class="screen" style="display:none; overflow-y:auto; padding:32px;">
+      <div class="page-title">Admin — All Sessions</div>
+      <div class="page-subtitle" style="margin-bottom:24px">Read-only history of all completed training sessions.</div>
+      <div class="card">
+        <div class="admin-table-header">
+          <span>CM Name</span>
+          <span>Child (Packet)</span>
+          <span>A Number</span>
+          <span>Date</span>
+          <span>TIC</span>
+          <span>Compliance</span>
+        </div>
+        <div id="admin-list">
+          <div class="empty-state">No sessions recorded yet.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /screen-app -->
+
+<!-- AUDIT MODAL -->
+<div id="audit-overlay">
+  <div class="audit-modal">
+    <div class="audit-modal-header">
+      <h2>Session Audit Report</h2>
+      <span id="audit-safety-badge" class="safety-badge pass">✓ Safety Passed</span>
+    </div>
+    <div class="audit-modal-body">
+      <div class="audit-scores-row">
+        <div class="audit-score-card">
+          <div class="audit-score-val" id="audit-tic">—</div>
+          <div class="audit-score-label">TIC Grade / 6</div>
+        </div>
+        <div class="audit-score-card">
+          <div class="audit-score-val" id="audit-compliance">—</div>
+          <div class="audit-score-label">Compliance %</div>
+        </div>
+        <div class="audit-score-card">
+          <div class="audit-score-val" id="audit-duration">—</div>
+          <div class="audit-score-label">Duration (min)</div>
+        </div>
+      </div>
+
+      <div class="audit-section">
+        <div class="audit-section-title">TIC Breakdown</div>
+        <div class="tic-grid" id="audit-tic-grid">—</div>
+      </div>
+
+      <div class="audit-section">
+        <div class="audit-section-title">Audit Narrative</div>
+        <div class="audit-narrative" id="audit-narrative">—</div>
+      </div>
+    </div>
+    <div class="audit-modal-footer">
+      <button class="btn-secondary" onclick="closeAuditAndGoHome()">Back to Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loading-msg">Loading...</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG — paste your Gemini key here
+// ═══════════════════════════════════════════════════════
+const GEMINI_API_KEY = 'PASTE_YOUR_GEMINI_KEY_HERE';
+const GEMINI_MODEL   = 'gemini-3.1-flash-lite-preview';
+const GEMINI_URL     = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_STREAM  = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+
+// Google Sheets Apps Script URL — paste yours here after setup
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwkkyN2Pbki9lKafFE69-AO6nD_Fwn5i-wwdyCjSmU2eTpeWOioS4MrDS1vJorlSn4h/exec';
+const ADMIN_PIN = 'lomaalta956';
+
+// ═══════════════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════════════
+let appState = {
+  cmName: '',
+  sessions: [],          // local array of completed sessions
+  currentSession: null,  // active session object
+  conversationHistory: [], // [{role, parts:[{text}]}]
+  messages: [],          // [{speaker, text, cue, ts}]
+  sessionStartTime: null,
+  timerInterval: null,
+  rapport: 10,
+  sessionActive: false,
+};
+
+// ═══════════════════════════════════════════════════════
+// SYSTEM PROMPTS
+// ═══════════════════════════════════════════════════════
+const NEW_INTAKE_SYSTEM_INSTRUCTION = `Rule: External Randomization Override
+If a [SYSTEM RANDOMIZATION] block is provided, you MUST use those exact values. Do not re-roll or override any value. The Resistance Roll, Identity Trap, Secret, Sponsor, Location, Pregnancy Status, Sponsor Relationship, Sponsor State/City, and Medical Status are all pre-determined. Build the persona around these fixed values.
+
+YOU ARE THE CHILD. The user is the Case Manager (CM).
+
+STRICT OUTPUT FORMAT - VIOLATING THIS BREAKS THE SYSTEM:
+Line 1: One behavioral cue inside *asterisks* — MUST be THIRD PERSON like a narrator describing the child (e.g., "*Crosses her arms*" or "*Looks down at the floor*"). NEVER use first person (WRONG: "*I cross my arms*").
+Line 2: Your spoken words. No asterisks anywhere in this line or any line after it.
+
+That is it. Nothing else. No more lines. No second behavioral cue. No closing action.
+
+CORRECT:
+*Looks at the floor and pulls her sweater tighter*
+No se... es que me da miedo.
+
+WRONG - THIS CRASHES THE APP:
+*Looks at the floor* No se... *pulls sweater tighter* me da miedo.
+
+ALSO WRONG - THIS CRASHES THE APP:
+*Looks at the floor*
+No se... me da miedo.
+*Pulls sweater tighter*
+
+If you feel the urge to add a second *action* after your dialogue, DO NOT. Just end your response after the dialogue. The CM will respond and then you get another turn.
+
+Maximum 2-3 sentences of dialogue. Keep it short. Wait for the CM.
+
+NEVER COACH THE CM: You must NEVER hint, suggest, or guide what the Case Manager should do next. NEVER say things like "you should ask me about my medical history" or "maybe you could ask about my family" or "the next step would be..." You are the CHILD — you do not know the CM's process. You only react to what the CM says. If the CM misses something, that is their failure to catch during the audit. Stay in character at all times.
+
+BLOCK 0: INITIALIZATION & MASTER ANSWER KEY
+Objective: Before the first interaction, the AI must scan ALL documents in Block 8 and generate the "Internal Truth." This block acts as the "Source of Truth" for all subsequent blocks. Use the values from the [SYSTEM RANDOMIZATION] block to determine Identity Trap, Secret, Sponsor legitimacy, Medical Status, and all other pre-rolled values.
+
+1. Lead's Answer Key (Output Immediately): The AI must provide a comprehensive "Answer Key" for the Lead. It must include:
+* Identity (from Intake/Orientation): True Name (from the [SYSTEM RANDOMIZATION] block), True 9-digit A# (generated by AI), and True DOB (generated by AI, incorporating the Identity Trap if triggered).
+* Orientation & Rights: The specific rights the child is waiting to hear, and the specific relative they want to call.
+* Medical Truth: A "True" status for EVERY field found in the documents. Use the Medical Condition from the randomization block as the child's condition.
+* Mental Health: True status for Self-Harm/Hallucinations.
+* Service Planning: Pre-determined Clothing Decision (Keep/Discard + Reason) and Religious Preference.
+* The Hidden Story: Fleeing country of origin (narrative based on the country/region/city from the randomization block), Sponsor true identity (use Sponsor Roll from randomization block), and Debt amount/threat.
+
+BLOCK 1: THE IDENTITY & DEMOGRAPHIC ANCHOR
+Mandatory Status: Always Female. Pregnancy and parenting status is provided in the [SYSTEM RANDOMIZATION] block. Use that exact value.
+
+Persona Origin: The country of origin, region, and city are provided in the [SYSTEM RANDOMIZATION] block. Use those exact values.
+
+Child's Name: The child's given name(s) and surnames are provided in the [SYSTEM RANDOMIZATION] block.
+
+The Generated DHS Packet: You must generate a formal "Packet" at the start of the session containing:
+* Full Name: Use the names from the [SYSTEM RANDOMIZATION] block. If the Identity Trap is a Name Trap, the DHS Packet name must contain the phonetic error.
+* A#: Generate a unique 9-digit number.
+* DOB: Generate a specific date appropriate for a female aged 12-17.
+* Sponsor Info: Generate a sponsor name using the Sponsor Relationship, State, and City from the [SYSTEM RANDOMIZATION] block. The sponsor's phone number must use the area code from the [SYSTEM RANDOMIZATION] block.
+* Medical/Meds: Check PACKET_VISIBLE. If PACKET_VISIBLE is "Yes", list the specific condition from MEDICAL_CONDITION. If "No" or "N/A", list "No meds / No illness / No allergies."
+
+The Identity Trap: If triggered (roll 30 or below), create a discrepancy between the DHS Packet and the child's true identity per the IDENTITY_TRAP_TYPE.
+
+BLOCK 2: THE BEHAVIORAL SPECTRUM & EMOTIONAL PROFILES
+Use the RESISTANCE_ROLL from the [SYSTEM RANDOMIZATION] block:
+Roll 1-2 | Compliant/Relieved: Eager to please, detailed answers, grateful.
+Roll 3-4 | Depressive/Withdrawn: Slumped, monotone, flat.
+Roll 5-6 | Anxious/Paranoid: Fidgeting, questioning the CM, shaky.
+Roll 7-8 | Avoidant/Hiding: Vague, forgetting details, defensive.
+Roll 9-10 | Hostile/Challenging: Attitude, deflecting, cold.
+
+BLOCK 3: THE ANCHOR RULE
+Once any fact is stated, it is permanent truth for the session.
+
+BLOCK 4: THE SECRET & SAFETY RULE
+SECRET_ROLL 1-40: No secret.
+SECRET_ROLL 41-70: Medical/health secret (child hides a condition or symptom).
+SECRET_ROLL 71-100: Trauma/safety secret (abuse, threat, or danger signal the CM must actively uncover).
+The child will NEVER volunteer the secret. The CM must ask the right questions and use TIC techniques.
+
+BLOCK 5: THE LANGUAGE RULE
+All dialogue in Mexican Spanish. Behavioral cues in English, third person.
+Use regional slang and muletillas. Simulate literacy level per LITERACY_ROLL (illiteracy shown via cues, not stated directly).
+
+BLOCK 6: THE HALLUCINATION PROTOCOL
+If the CM asks a question not covered by the documents, hallucinate a contextually appropriate answer immediately. Do not say "I don't know." Once stated, that fact becomes permanent.
+
+BLOCK 7: MANDATORY DOCUMENT-BY-DOCUMENT INVENTORY
+The AI must use these 11 documents to track which questions the CM asks:
+1. Initial Intake: Primary Language? Date of departure? Date of Arrival? Do you know anybody in the U.S?
+2. Initial Phone Call: Who did you reside with in the home country? Do you have contact information for your prior caregiver? CM must explain: call is 20 minutes, call durations.
+3. Medical Questions: Physical/medical problems? Allergies? Special dietary needs? Currently taking medication? History of tuberculosis? History of seizures? Any scars/birthmarks/tattoos?
+4. Mental Health Questions: Tried to hurt yourself? Harmed anyone? Thought of suicide? Attempted suicide? Heard voices others don't? Seeing things? Trouble controlling anger? Thoughts of harming yourself or someone else? Do you feel safe? Do you fear someone will harm you? CM must explain room location/roommates.
+5. Emergency Admission: Known allergies (food/medication/sting/skin)? Chronic health conditions? History of restraint? Consulate Services.
+6. Emergency Behavior Intervention: How can we assist if you're angry? What helps you calm down? Ever suffered abuse or trauma? Any surgery in recent years? Any breathing problems? Physical limitations? Diagnosed with mental/psychiatric problems? Are you pregnant? Have you understood the information presented?
+7. Child Initial Orientation: CM must explain and verify: Children's Handbook, shelter rules, privacy practices, preventing sexual abuse, rights to treatment/counseling, how to use telephones, pregnancy rights, Garza Notice, community resources, emergency evacuation procedures, grievances.
+8. Legal Resource Guide: Right to retain attorney at no cost. Not limited to list providers. ORR funds free legal assistance. Legal providers may coordinate pro bono referral.
+9. Preliminary Service Plan: Immediate needs? Food restrictions/allergies? Personal clothing? Keep or dispose of clothing? Past medical concerns? Taking medication? Allergies/reactions to medication?
+10. Orientation Note: CM must inform about reunification/sponsorship process. CM must explain DSA vetting process.
+11. Religious Service Log: Religion? Religious dietary restrictions? Religious holidays observed? Religious items requested? Religious practices?
+
+OUTPUT FORMAT FOR INITIALIZATION:
+First output a JSON block between ===ANSWER_KEY_START=== and ===ANSWER_KEY_END=== with the full packet and truth data:
+{"packet_fullName":"","packet_aNumber":"","packet_dob":"","packet_origin":"","packet_sponsorName":"","packet_sponsorRelationship":"","packet_sponsorPhone":"","packet_sponsorCity":"","packet_sponsorState":"","packet_medical":"","packet_meds":"","packet_allergies":"","true_fullName":"","true_aNumber":"","true_dob":"","true_origin":"","identityTrapType":"","moodProfile":"","secretType":"","healthRoll":"","sessionLocation":"","pregnancyStatus":"","identityAnchor":"","medicalReality":""}
+
+Then after ===ANSWER_KEY_END=== output the first child response (behavioral cue + dialogue only, nothing else).`;
+
+const END_SESSION_SYSTEM_INSTRUCTION = `ACT AS A COLD FEDERAL AUDITOR. You are no longer the child. The interview is over. Your only job is to analyze the transcript and produce a complete JSON audit followed by a narrative summary.
+
+MANDATORY INTAKE CHECKLIST:
+1. Initial Intake: Primary Language? Other Languages Spoken? Date of departure from home country? Date of Arrival in the US? Do you know anybody in the U.S? Is there someone we can contact to let them know you are here?
+2. Initial Phone Call: Who did you reside with in the home country? Do you have contact information for your prior caregiver? CM must explain: Initial call is 20 minutes. CM must explain: Monitoring rules. CM must explain: Weekday calls (Min 10 mins/day, total 50 mins/week). CM must explain: Weekend/Holiday/Birthday calls (Min 45 mins).
+3. Medical Questions: Physical/medical problems today or in the last 30 days? Do you have any allergies? Any special dietary needs? Currently taking any prescribed or other medication? Ever been to a doctor or stayed in a hospital? History of tuberculosis? History of seizures or convulsions? Any scars, birthmarks, or tattoos?
+4. Mental Health Questions: Tried to hurt yourself? Had urges to beat, injure or harm someone? Harmed anyone? Thought of attempting suicide or hurting yourself? Attempted suicide? Heard voices others don't? Seeing things or people others do not see? Had trouble controlling anger or violent behavior? Having thoughts of harming yourself or someone else? Do you feel safe now? Do you fear that someone will harm you? CM must explain room location, number of potential roommates, age and sex of roommates, and bathroom/shower area.
+5. Emergency Admission Assessment: List any known allergies: food, medication, sting, and skin allergies. Any chronic health conditions? History of restraint? If restrained in past, any adverse reaction? Any triggers that may cause the child to become upset? What is the child's preferred de-escalation technique? Known contraindications to the use of emergency behavior intervention? Any high-risk behaviors? Consulate Services denied or requested?
+6. Emergency Behavior Intervention: If you were angry to the extent that you could be physically in danger, how can we assist and intervene? What can help you calm down if you feel very angry? Ever suffered from any type of abuse or trauma in your home country? Any type of surgery in recent years? Any problem with your breathing? Any kind of limitation due to physical problems? Ever been diagnosed with mental or psychiatric problems? Are you or do you think you are pregnant? Have you understood the information that has been presented to you?
+7. Child Initial Orientation: CM must explain and verify receipt of: Children's Handbook, Shelter rules and expectations, Notice regarding privacy practices. CM must explain: Preventing/detecting sexual abuse and harassment. CM must explain: Rights to receive treatment, services, and counseling. CM must explain: How to use pre-programmed telephones to report abuse or contact a consulate. CM must explain: Rights if pregnant to decide whether to have the baby or to have an abortion. CM must provide: Garza Notice and Infographic Garza notice. CM must provide: Local community resources. CM must explain: Emergency evacuation procedures and Grievances.
+8. Legal Resource Guide: CM must explain: Right to retain any attorney you choose at no cost to the government. CM must explain: You are not limited to legal service providers on the provided list. CM must explain: ORR funds organizations to provide free legal assistance. CM must explain: Legal service providers may help coordinate a referral to a pro bono attorney.
+9. Preliminary Service Plan: What are the child's immediate needs? Does the child have any food restrictions/allergies? Does the child have any personal clothing? Does the child wish to KEEP or DISPOSE of personal clothing? Any past medical concerns? Taking any medication? Any allergies/known reactions to medication?
+10. Orientation Note: CM must inform child about the sponsorship process. CM must explain: The Division of Sponsor Administration (DSA) is responsible for conducting the sponsor vetting process and collecting all required documentation.
+11. Religious Service Log: Religion? Religious Dietary Restrictions? Religious Holidays Observed? Religious Items Requested? Religious Practices?
+
+GRADING RULES:
+- SAFETY_FAILURE: true if a secret existed AND the CM failed to uncover it.
+- TIC_GRADE: Count of 6 principles demonstrated.
+- TIC_BREAKDOWN: For each principle state Demonstrated or Missed with one specific transcript moment as evidence.
+  1. Safety: Did the CM prioritize physical, psychological, emotional, social, and moral safety?
+  2. Trustworthiness and Transparency: Did the CM build trust through professional boundaries, consistency, and explaining the 'why' behind decisions?
+  3. Peer Support and Mutual Self-Help: Did the CM build healing relationships through shared lived experiences?
+  4. Collaboration and Mutuality: Did the CM create space for the child to explore options from their own perspective?
+  5. Empowerment, Voice, and Choice: Did the CM use strengths-based language and build on the child's existing skills?
+  6. Humility and Responsiveness: Did the CM recognize and value the worth of all people through self-reflection and sharing power?
+- COMPLIANCE_SCORE: Count how many of the 11 forms had at least one question asked. Calculate (count / 11) * 100 as a whole number.
+
+OUTPUT: Two things in this exact order. No markdown, no code fences.
+
+FIRST: The JSON object:
+{"AI_COACH_SUMMARY":{"SAFETY_FAILURE":false,"TIC_GRADE":"X/6","TIC_BREAKDOWN":{"Safety":{"status":"Demonstrated/Missed","evidence":"specific moment"},"Trustworthiness_Transparency":{"status":"Demonstrated/Missed","evidence":"specific moment"},"Peer_Support_Mutual_Self_Help":{"status":"Demonstrated/Missed","evidence":"specific moment"},"Collaboration_Mutuality":{"status":"Demonstrated/Missed","evidence":"specific moment"},"Empowerment_Voice_Choice":{"status":"Demonstrated/Missed","evidence":"specific moment"},"Humility_Responsiveness":{"status":"Demonstrated/Missed","evidence":"specific moment"}},"COMPLIANCE_SCORE":0,"SOFT_SKILLS_REPORT":""}}
+
+SECOND: After the JSON, on a new line write ===AUDIT_NARRATIVE_START=== then the audit narrative then ===AUDIT_NARRATIVE_END===
+
+The audit narrative MUST contain exactly 5 labeled sections in this order:
+TIC GRADING: [2-3 sentences]
+ORIENTATION COMPLIANCE: [2-3 sentences]
+SOFT SKILLS: [2-3 sentences]
+SAFETY RESULT: [2-3 sentences]
+ADAPTABILITY: [2-3 sentences]
+
+Always lead with strengths before areas for improvement. Professional, constructive, coaching tone.`;
+
+// ═══════════════════════════════════════════════════════
+// RANDOMIZATION SERVICE
+// ═══════════════════════════════════════════════════════
+const COUNTRIES_DATA = {
+  'Mexico': { regions: ['Jalisco','Veracruz','Chiapas','Oaxaca','Guerrero','Michoacán','Puebla','Chihuahua'], cities: ['Guadalajara','Veracruz','Tuxtla Gutiérrez','Oaxaca de Juárez','Acapulco','Morelia','Puebla','Ciudad Juárez'] },
+  'Guatemala': { regions: ['Guatemala','Huehuetenango','Alta Verapaz','Quiché','Chiquimula','Escuintla'], cities: ['Guatemala City','Huehuetenango','Cobán','Santa Cruz del Quiché','Chiquimula','Escuintla'] },
+  'Honduras': { regions: ['Cortés','Francisco Morazán','Yoro','Choluteca','Atlántida'], cities: ['San Pedro Sula','Tegucigalpa','El Progreso','Choluteca','La Ceiba'] },
+  'El Salvador': { regions: ['San Salvador','Santa Ana','San Miguel','La Libertad'], cities: ['San Salvador','Santa Ana','San Miguel','Santa Tecla'] },
+  'Nicaragua': { regions: ['Managua','Chinandega','León','Masaya'], cities: ['Managua','Chinandega','León','Masaya'] },
+  'Venezuela': { regions: ['Caracas','Maracaibo','Valencia','Barquisimeto'], cities: ['Caracas','Maracaibo','Valencia','Barquisimeto'] },
+  'Colombia': { regions: ['Antioquia','Bogotá','Valle del Cauca','Bolívar'], cities: ['Medellín','Bogotá','Cali','Cartagena'] },
+  'Ecuador': { regions: ['Pichincha','Guayas','Azuay'], cities: ['Quito','Guayaquil','Cuenca'] },
+  'Peru': { regions: ['Lima','Arequipa','Cusco','La Libertad'], cities: ['Lima','Arequipa','Cusco','Trujillo'] },
+};
+
+const GIVEN_NAMES = ['Sofía','Valeria','Isabella','Camila','Gabriela','Natalia','Paola','Andrea','Daniela','Alejandra','Mariana','Fernanda','Lucía','Victoria','Karla','Ximena','Yolanda','Brenda','Estefanía','Marisol','Guadalupe','Angélica','Consuelo','Esperanza','Rosario'];
+const SURNAMES    = ['López','García','Hernández','Martínez','González','Pérez','Rodríguez','Sánchez','Ramírez','Torres','Flores','Rivera','Morales','Jiménez','Ramos','Cruz','Ortiz','Reyes','Vargas','Castillo','Mendoza','Domínguez','Vega','Ríos','Aguilar'];
+const SPONSOR_NAMES = ['Dolores','Felipa','Ignacio','Rodrigo','Edmundo','Hilario','Celestino','Rosalba','Eulalio','Prudencio','Marcela','Desiderio','Visitación','Abundio','Herminia','Silvestre','Evaristo','Transito','Refugio','Ladislao'];
+const SPONSOR_RELS  = ['Father','Mother','Older Brother','Older Sister','Aunt','Uncle','Grandmother','Grandfather','Cousin','Family Friend'];
+const US_STATES     = [['Texas','713'],['Florida','305'],['California','213'],['New York','718'],['Georgia','404'],['North Carolina','704'],['Virginia','703'],['Illinois','312']];
+const SESSION_LOCS  = ['Conference Room A','Conference Room B','Intake Office','Group Meeting Room','Counseling Room 1','Counseling Room 2'];
+const PREGNANCY_OPT = ['Not pregnant','Pregnant','Parenting','Pregnant and parenting'];
+const MEDICAL_POOL  = [
+  {c:'Healthy, no medical issues',s:'None',p:false},
+  {c:'Scabies',s:'Mild',p:true},{c:'Lice infestation',s:'Mild',p:true},
+  {c:'Dehydration',s:'Moderate',p:true},{c:'Upper respiratory infection',s:'Mild',p:true},
+  {c:'Skin rash/lesions',s:'Mild',p:true},{c:'Dental pain',s:'Mild',p:false},
+  {c:'Anemia',s:'Moderate',p:true},{c:'Asthma',s:'Moderate',p:true},
+  {c:'Epilepsy (seizure history)',s:'Moderate',p:true},{c:'Diabetes Type 1',s:'Moderate',p:true},
+  {c:'Abdominal pain',s:'Mild',p:false},{c:'Chronic headaches',s:'Mild',p:false},
+  {c:'Tuberculosis (latent)',s:'Moderate',p:false},{c:'Malnutrition',s:'Moderate',p:true},
+];
+
+function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function generateRandomization() {
+  const countryKey  = pickRandom(Object.keys(COUNTRIES_DATA));
+  const cd          = COUNTRIES_DATA[countryKey];
+  const regionIdx   = Math.floor(Math.random() * cd.regions.length);
+  const region      = cd.regions[regionIdx];
+  const city        = cd.cities[regionIdx] || cd.cities[0];
+
+  const givenName1  = pickRandom(GIVEN_NAMES);
+  const givenName2  = Math.random() < 0.5 ? pickRandom(GIVEN_NAMES.filter(n => n !== givenName1)) : 'N/A';
+  const surname1    = pickRandom(SURNAMES);
+  const surname2    = Math.random() < 0.7 ? pickRandom(SURNAMES.filter(s => s !== surname1)) : 'N/A';
+
+  const resistanceRoll    = Math.floor(Math.random() * 10) + 1;
+  const identityTrapRoll  = Math.floor(Math.random() * 100) + 1;
+  const identityTrapTypes = ['Name','DOB','A#','None'];
+  const identityTrapType  = identityTrapRoll <= 30 ? pickRandom(identityTrapTypes.slice(0,3)) : 'None';
+
+  const medData     = pickRandom(MEDICAL_POOL);
+  const secretRoll  = Math.floor(Math.random() * 100) + 1;
+  const sponsorRel  = pickRandom(SPONSOR_RELS);
+  const sponsorName = pickRandom(SPONSOR_NAMES);
+  const [sponsorState, areaCode] = pickRandom(US_STATES);
+  const sponsorCity = pickRandom(['Houston','Miami','Los Angeles','Chicago','Atlanta','Charlotte','Dallas','Phoenix','Las Vegas','Orlando']);
+  const literacyRoll = Math.floor(Math.random() * 100) + 1;
+  const sessionLocation = pickRandom(SESSION_LOCS);
+  const pregnancyStatus = pickRandom(PREGNANCY_OPT);
+  const disclosure  = Math.random() < 0.4 ? pickRandom(['Physical abuse by sponsor','Gang threat','Debt bondage','Domestic violence','Sexual abuse by family member','None']) : 'None';
+  const debtAmount  = Math.floor(Math.random() * 19000) + 1000;
+
+  return {
+    country: countryKey, region, city,
+    givenName1, givenName2, surname1, surname2,
+    resistanceRoll, identityTrapRoll, identityTrapType,
+    healthRoll: medData.c === 'Healthy, no medical issues' ? 'Healthy' : 'Medical',
+    medicalCondition: medData.c, packetVisible: medData.p,
+    secretRoll, sponsorRelationship: sponsorRel,
+    sponsorGivenName: sponsorName, sponsorSurname1: pickRandom(SURNAMES), sponsorSurname2: pickRandom(SURNAMES),
+    sponsorState, sponsorCity, sponsorAreaCode: areaCode,
+    literacyRoll, sessionLocation, pregnancyStatus, disclosure, debtAmount,
+    isAdultFather: (pregnancyStatus !== 'Not pregnant') ? Math.random() < 0.7 : false,
+    babySeparatedAtDHS: pregnancyStatus === 'Parenting' ? Math.random() < 0.3 : false,
+    babyGivenName: pregnancyStatus === 'Parenting' ? pickRandom(GIVEN_NAMES) : 'N/A',
+    babySurname1: pregnancyStatus === 'Parenting' ? surname1 : 'N/A',
+  };
+}
+
+function buildRandomizationBlock(rand) {
+  return `[SYSTEM RANDOMIZATION]
+COUNTRY: ${rand.country}
+REGION: ${rand.region}
+CITY: ${rand.city}
+GIVEN_NAME_1: ${rand.givenName1}
+GIVEN_NAME_2: ${rand.givenName2}
+SURNAME_1: ${rand.surname1}
+SURNAME_2: ${rand.surname2}
+NAMING_CONVENTION: A
+RESISTANCE_ROLL: ${rand.resistanceRoll}
+IDENTITY_TRAP_ROLL: ${rand.identityTrapRoll}
+IDENTITY_TRAP_TYPE: ${rand.identityTrapType}
+HEALTH_ROLL: ${rand.healthRoll}
+MEDICAL_CONDITION: ${rand.medicalCondition}
+PACKET_VISIBLE: ${rand.packetVisible}
+SECRET_ROLL: ${rand.secretRoll}
+SPONSOR_ROLL: 5
+SPONSOR_RELATIONSHIP: ${rand.sponsorRelationship}
+SPONSOR_STATE: ${rand.sponsorState}
+SPONSOR_CITY: ${rand.sponsorCity}
+SPONSOR_AREA_CODE: ${rand.sponsorAreaCode}
+SPONSOR_GIVEN_NAME: ${rand.sponsorGivenName}
+SPONSOR_SURNAME_1: ${rand.sponsorSurname1}
+SPONSOR_SURNAME_2: ${rand.sponsorSurname2}
+LITERACY_ROLL: ${rand.literacyRoll}
+SESSION_LOCATION: ${rand.sessionLocation}
+PREGNANCY_STATUS: ${rand.pregnancyStatus}
+DISCLOSURE: ${rand.disclosure}
+DEBT_AMOUNT: ${rand.debtAmount}
+IS_ADULT_FATHER: ${rand.isAdultFather}
+BABY_SEPARATED_AT_DHS: ${rand.babySeparatedAtDHS}
+BABY_GIVEN_NAME: ${rand.babyGivenName}
+BABY_SURNAME_1: ${rand.babySurname1}
+[END SYSTEM RANDOMIZATION]`;
+}
+
+// ═══════════════════════════════════════════════════════
+// RAPPORT SERVICE
+// ═══════════════════════════════════════════════════════
+const EMPATHETIC_KW = ['entiendo','comprendo','me imagino','debe ser','es difícil','lo siento','estoy aquí','no te preocupes','está bien','tranquila','segura','seguro','te escucho','cuéntame','gracias por','puedo ayudar','juntos','conmigo','no estás sola','confía','a tu ritmo','poco a poco','te creo','es normal','tiene sentido','understand','i see','must be','difficult','sorry','listening','tell me','trust','take your time','i believe you','makes sense','cómo','qué','cuándo','dónde','por qué','how','what','when','where','why','can you tell','would you like','okay','sí','claro','muy bien'];
+const NEGATIVE_KW   = ['tienes que','debes','necesito que','dime ahora','rápido','you must','you have to','hurry','answer me','no importa','whatever','calm down','cálmate','basta','ya basta'];
+
+function calculateRapport(messages) {
+  const cmMsgs = messages.filter(m => m.speaker === 'CM');
+  if (cmMsgs.length === 0) return 10;
+
+  let emp = 0, neg = 0, len = 0, q = 0;
+  for (const msg of cmMsgs) {
+    const t = msg.text.toLowerCase();
+    EMPATHETIC_KW.forEach(k => { if (t.includes(k)) emp++; });
+    NEGATIVE_KW.forEach(k => { if (t.includes(k)) neg++; });
+    const l = msg.text.length;
+    if (l >= 15 && l <= 120) len += 2;
+    else if (l < 10) len -= 1;
+    else if (l > 200) len -= 1;
+    if (t.includes('?') && EMPATHETIC_KW.some(k => ['cómo','qué','cuándo','how','what','when','where','why','can you tell','would you like'].includes(k) && t.includes(k))) q++;
+  }
+  const childMsgs = messages.filter(m => m.speaker === 'Child');
+  const engagement = cmMsgs.length >= 3 && childMsgs.length >= 2 ? 3 : 0;
+  const raw = 10 + (emp * 4) + (neg * -6) + len + (cmMsgs.length * 1) + (q * 2) + engagement;
+  return Math.max(0, Math.min(100, Math.round(raw)));
+}
+
+function getMoodFromRapport(r) {
+  if (r < 20) return { label: 'Guarded/Fearful',    color: '#DC2626' };
+  if (r < 40) return { label: 'Anxious/Withdrawn',  color: '#EA580C' };
+  if (r < 60) return { label: 'Cautious/Hesitant',  color: '#CA8A04' };
+  if (r < 80) return { label: 'Warming Up',          color: '#65A30D' };
+  return           { label: 'Engaged/Trusting',      color: '#16A34A' };
+}
+
+// ═══════════════════════════════════════════════════════
+// GEMINI API
+// ═══════════════════════════════════════════════════════
+async function callGemini(systemInstruction, contents, maxTokens = 8192) {
+  const body = {
+    systemInstruction: { parts: [{ text: systemInstruction }] },
+    contents,
+    generationConfig: { temperature: 0.9, topK: 40, topP: 0.95, maxOutputTokens: maxTokens },
+    safetySettings: [
+      { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+    ],
+  };
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(GEMINI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const err = await res.text();
+        if (res.status >= 500 || res.status === 429) {
+          if (attempt < 3) { await sleep(1000 * attempt); continue; }
+          throw new Error(`Gemini error ${res.status}: ${err}`);
+        }
+        throw new Error(`Gemini error ${res.status}: ${err}`);
+      }
+      const data = await res.json();
+      return data.candidates[0].content.parts[0].text;
+    } catch (e) {
+      if (attempt < 3) { await sleep(1000 * attempt); continue; }
+      throw e;
+    }
+  }
+}
+
+async function callGeminiStreaming(systemInstruction, contents, maxTokens = 16000) {
+  const body = {
+    systemInstruction: { parts: [{ text: systemInstruction }] },
+    contents,
+    generationConfig: { temperature: 0.9, topK: 40, topP: 0.95, maxOutputTokens: maxTokens },
+    safetySettings: [
+      { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+    ],
+  };
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(GEMINI_STREAM, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const err = await res.text();
+        if (attempt < 3) { await sleep(1000 * attempt); continue; }
+        throw new Error(`Gemini streaming error ${res.status}: ${err}`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = '', buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const json = line.slice(6).trim();
+            if (json && json !== '[DONE]') {
+              try { fullText += JSON.parse(json).candidates?.[0]?.content?.parts?.[0]?.text || ''; } catch {}
+            }
+          }
+        }
+      }
+      if (!fullText) throw new Error('Empty streaming response');
+      return fullText;
+    } catch (e) {
+      if (attempt < 3) { await sleep(1000 * attempt); continue; }
+      throw e;
+    }
+  }
+}
+
+function parseChildResponse(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  let cue = '', dialogue = '';
+  if (lines.length >= 1) {
+    const first = lines[0].trim();
+    const m = first.match(/^\*([^*]+)\*$/);
+    if (m) { cue = m[1].trim(); }
+    else { dialogue = first; }
+  }
+  if (lines.length >= 2 && cue) { dialogue = lines.slice(1).join(' ').trim(); }
+  if (!dialogue && !cue && lines.length > 0) { dialogue = lines[0].trim(); }
+  return { cue, dialogue };
+}
+
+function parseAnswerKey(text) {
+  const start = text.indexOf('===ANSWER_KEY_START===');
+  const end   = text.indexOf('===ANSWER_KEY_END===');
+  if (start === -1 || end === -1) return null;
+  try {
+    return JSON.parse(text.slice(start + 22, end).trim());
+  } catch { return null; }
+}
+
+function parseAudit(text) {
+  let jsonStr = '', narrative = '';
+  const narStart = text.indexOf('===AUDIT_NARRATIVE_START===');
+  const narEnd   = text.indexOf('===AUDIT_NARRATIVE_END===');
+  if (narStart !== -1 && narEnd !== -1) {
+    narrative = text.slice(narStart + 27, narEnd).trim();
+    jsonStr   = text.slice(0, narStart).trim();
+  } else {
+    jsonStr = text;
+  }
+  let parsed = null;
+  try { parsed = JSON.parse(jsonStr); } catch {
+    const m = jsonStr.match(/\{[\s\S]*\}/);
+    if (m) { try { parsed = JSON.parse(m[0]); } catch {} }
+  }
+  return { parsed, narrative };
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ═══════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════
+function showLoading(msg = 'Loading...') {
+  document.getElementById('loading-msg').textContent = msg;
+  document.getElementById('loading-overlay').classList.add('open');
+}
+
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('open');
+}
+
+function showToast(msg, duration = 3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function getInitials(name) {
+  if (!name) return '??';
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) return words[0][0].toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function scoreColor(score) {
+  if (score >= 80) return 'good';
+  if (score >= 60) return 'warn';
+  return 'bad';
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function togglePanel(id) {
+  const body  = document.getElementById('body-' + id);
+  const arrow = document.getElementById('arrow-' + id);
+  const open  = body.classList.toggle('open');
+  arrow.textContent = open ? '▼' : '▶';
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function navigateTo(screen) {
+  // If trying to go to simulation without active session, start one
+  if (screen === 'simulation' && !appState.sessionActive) {
+    startNewSession();
+    return;
+  }
+
+  // Hide all screens
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+
+  // Update nav
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+  if (screen === 'home') {
+    const s = document.getElementById('screen-home');
+    s.style.display = 'block';
+    s.classList.add('active');
+    document.getElementById('nav-home').classList.add('active');
+    renderSessionList();
+  } else if (screen === 'simulation') {
+    const s = document.getElementById('screen-simulation');
+    s.style.display = 'flex';
+    s.classList.add('active');
+    document.getElementById('nav-simulation').classList.add('active');
+} else if (screen === 'admin') {
+    const pin = prompt('Enter Admin PIN:');
+    if (pin !== ADMIN_PIN) {
+      showToast('Incorrect PIN.');
+      navigateTo('home');
+      return;
+    }
+    const s = document.getElementById('screen-admin');
+    s.style.display = 'block';
+    s.classList.add('active');
+    document.getElementById('nav-admin').classList.add('active');
+    renderAdminList();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// LANDING
+// ═══════════════════════════════════════════════════════
+document.getElementById('cm-name-input').addEventListener('input', function() {
+  document.getElementById('landing-enter-btn').disabled = this.value.trim().length < 2;
+});
+
+document.getElementById('cm-name-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && this.value.trim().length >= 2) handleEnter();
+});
+
+function handleEnter() {
+  const name = document.getElementById('cm-name-input').value.trim();
+  if (name.length < 2) return;
+
+  appState.cmName = name;
+
+  // Check admin pin — hardcoded for now
+  const isAdmin = name.toLowerCase().includes('admin') || name.toLowerCase().includes('lead');
+
+  // Load sessions from localStorage
+  const stored = localStorage.getItem('cm_sessions');
+  if (stored) {
+    try { appState.sessions = JSON.parse(stored); } catch { appState.sessions = []; }
+  }
+
+  // Switch screens
+  document.getElementById('screen-landing').style.display = 'none';
+  document.getElementById('screen-app').style.display = 'flex';
+
+  // Update sidebar
+  document.getElementById('user-avatar').textContent = getInitials(name);
+  document.getElementById('user-name-display').textContent = name;
+  document.getElementById('home-greeting').textContent = `Welcome, ${name.split(' ')[0]}`;
+
+  // Show admin nav if admin
+  if (isAdmin) {
+    document.getElementById('nav-admin').style.display = 'flex';
+  }
+
+  navigateTo('home');
+}
+
+// ═══════════════════════════════════════════════════════
+// HOME — SESSION LIST
+// ═══════════════════════════════════════════════════════
+function renderSessionList() {
+  const mySessions = appState.sessions
+    .filter(s => s.cmName === appState.cmName)
+    .sort((a, b) => b.timestamp - a.timestamp);
+
+  const container = document.getElementById('session-list');
+  const countEl   = document.getElementById('session-count');
+
+  countEl.textContent = mySessions.length > 0 ? `${mySessions.length} session${mySessions.length !== 1 ? 's' : ''}` : '';
+
+  if (mySessions.length === 0) {
+    container.innerHTML = '<div class="empty-state">No sessions yet. Start your first simulation above.</div>';
+    return;
+  }
+
+  container.innerHTML = mySessions.map(s => {
+    const tic  = s.ticGrade ?? '—';
+    const comp = s.complianceScore != null ? s.complianceScore + '%' : '—';
+    const compClass = s.complianceScore != null ? scoreColor(s.complianceScore) : 'warn';
+    return `
+      <div class="session-row">
+        <span class="session-name">${s.packetName || 'Unknown'}</span>
+        <span class="session-meta">${s.packetANumber || 'N/A'}</span>
+        <span class="session-date">${fmtDate(s.timestamp)}</span>
+        <span><span class="score-chip ${s.ticGrade >= 4 ? 'good' : s.ticGrade >= 2 ? 'warn' : 'bad'}">${tic}/6</span></span>
+        <span><span class="score-chip ${compClass}">${comp}</span></span>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// ADMIN LIST
+// ═══════════════════════════════════════════════════════
+function renderAdminList() {
+  const all = [...appState.sessions].sort((a, b) => b.timestamp - a.timestamp);
+  const container = document.getElementById('admin-list');
+
+  if (all.length === 0) {
+    container.innerHTML = '<div class="empty-state">No sessions recorded yet.</div>';
+    return;
+  }
+
+  container.innerHTML = all.map(s => {
+    const comp = s.complianceScore != null ? s.complianceScore + '%' : '—';
+    const compClass = s.complianceScore != null ? scoreColor(s.complianceScore) : 'warn';
+    return `
+      <div class="admin-row">
+        <span style="font-weight:600">${s.cmName}</span>
+        <span>${s.packetName || 'Unknown'}</span>
+        <span style="font-family:'DM Mono',monospace; font-size:12px; color:var(--text3)">${s.packetANumber || 'N/A'}</span>
+        <span style="font-size:12px; color:var(--text3)">${fmtDate(s.timestamp)}</span>
+        <span><span class="score-chip ${s.ticGrade >= 4 ? 'good' : s.ticGrade >= 2 ? 'warn' : 'bad'}">${s.ticGrade ?? '—'}/6</span></span>
+        <span><span class="score-chip ${compClass}">${comp}</span></span>
+      </div>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// START SESSION
+// ═══════════════════════════════════════════════════════
+async function startNewSession() {
+  showLoading('Generating child persona...');
+
+  try {
+    const rand = generateRandomization();
+    const randBlock = buildRandomizationBlock(rand);
+    const fullInstruction = randBlock + '\n\n' + NEW_INTAKE_SYSTEM_INSTRUCTION;
+
+    const initContents = [{
+      role: 'user',
+      parts: [{ text: 'Begin the intake session. Output the Answer Key JSON first, then the child\'s opening response to the CM saying "Hola, buenos días."' }]
+    }];
+
+    const response = await callGemini(fullInstruction, initContents, 8192);
+
+    // Parse answer key
+    const answerKey = parseAnswerKey(response);
+
+    // Parse first child response (everything after ===ANSWER_KEY_END===)
+    const afterKey = response.indexOf('===ANSWER_KEY_END===');
+    const firstChildText = afterKey !== -1 ? response.slice(afterKey + 20).trim() : response;
+    const { cue, dialogue } = parseChildResponse(firstChildText);
+
+    // Set up session state
+    appState.currentSession = {
+      rand,
+      answerKey,
+      packetName: answerKey?.packet_fullName || `${rand.givenName1} ${rand.surname1}`,
+      packetANumber: answerKey?.packet_aNumber || '000-000-000',
+      packetDob: answerKey?.packet_dob || '—',
+      packetOrigin: answerKey?.packet_origin || rand.country,
+      packetMedical: answerKey?.packet_medical || '—',
+      packetSponsorName: answerKey?.packet_sponsorName || '—',
+      packetSponsorRel: answerKey?.packet_sponsorRelationship || rand.sponsorRelationship,
+      packetSponsorPhone: answerKey?.packet_sponsorPhone || '—',
+      packetSponsorCity: `${rand.sponsorCity}, ${rand.sponsorState}`,
+      sessionLocation: rand.sessionLocation,
+    };
+
+    appState.conversationHistory = [
+      { role: 'user', parts: [{ text: 'Hola, buenos días.' }] },
+      { role: 'model', parts: [{ text: firstChildText }] },
+    ];
+
+    appState.messages = [];
+    // Add CM greeting
+    appState.messages.push({ speaker: 'CM', text: 'Hola, buenos días.', cue: '', ts: Date.now() });
+    // Add child first response
+    appState.messages.push({ speaker: 'Child', text: dialogue, cue, ts: Date.now() });
+
+    appState.sessionActive = true;
+    appState.sessionStartTime = Date.now();
+    appState.rapport = 10;
+
+    // Start timer
+    if (appState.timerInterval) clearInterval(appState.timerInterval);
+    appState.timerInterval = setInterval(updateTimer, 1000);
+
+    hideLoading();
+
+    // Navigate to simulation
+    navigateTo('simulation');
+    populatePacketPanel();
+    renderMessages();
+    updateRapportUI();
+
+  } catch (err) {
+    hideLoading();
+    showToast('Error starting session: ' + err.message);
+    console.error(err);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// SEND MESSAGE
+// ═══════════════════════════════════════════════════════
+async function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const text  = input.value.trim();
+  if (!text || !appState.sessionActive) return;
+
+  // Disable input
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+
+  // Add CM message
+  appState.messages.push({ speaker: 'CM', text, cue: '', ts: Date.now() });
+  appState.conversationHistory.push({ role: 'user', parts: [{ text }] });
+  renderMessages();
+
+  // Show typing indicator
+  showTyping(true);
+
+  try {
+    // Get randomization block for this session
+    const rand = appState.currentSession.rand;
+    const randBlock = buildRandomizationBlock(rand);
+    const fullInstruction = randBlock + '\n\n' + NEW_INTAKE_SYSTEM_INSTRUCTION;
+
+    const response = await callGemini(fullInstruction, appState.conversationHistory);
+    const { cue, dialogue } = parseChildResponse(response);
+
+    appState.conversationHistory.push({ role: 'model', parts: [{ text: response }] });
+    appState.messages.push({ speaker: 'Child', text: dialogue, cue, ts: Date.now() });
+
+    // Update rapport
+    appState.rapport = calculateRapport(appState.messages);
+    updateRapportUI();
+
+    showTyping(false);
+    renderMessages();
+  } catch (err) {
+    showTyping(false);
+    showToast('Error sending message: ' + err.message);
+    console.error(err);
+  }
+
+  document.getElementById('send-btn').disabled = false;
+  input.focus();
+}
+
+// ═══════════════════════════════════════════════════════
+// END SESSION
+// ═══════════════════════════════════════════════════════
+async function endSession() {
+  if (!appState.sessionActive) return;
+
+  const confirmed = confirm('End this session? Gemini will audit the transcript.');
+  if (!confirmed) return;
+
+  clearInterval(appState.timerInterval);
+  const duration = Math.round((Date.now() - appState.sessionStartTime) / 60000);
+
+  showLoading('Auditing session... This may take 30-60 seconds.');
+
+  try {
+    const endHistory = [
+      ...appState.conversationHistory,
+      { role: 'user', parts: [{ text: '[SESSION END]' }] }
+    ];
+
+    const response = await callGeminiStreaming(END_SESSION_SYSTEM_INSTRUCTION, endHistory, 16000);
+    const { parsed, narrative } = parseAudit(response);
+
+    const coach = parsed?.AI_COACH_SUMMARY || {};
+    const ticStr   = coach.TIC_GRADE || '0/6';
+    const ticGrade = parseInt(ticStr.split('/')[0]) || 0;
+    const compliance = typeof coach.COMPLIANCE_SCORE === 'number' ? coach.COMPLIANCE_SCORE : parseInt(coach.COMPLIANCE_SCORE || '0');
+    const safetyFailed = coach.SAFETY_FAILURE === true;
+    const ticBreakdown = coach.TIC_BREAKDOWN || {};
+
+    // Save session
+    const sessionRecord = {
+      id: Date.now(),
+      cmName: appState.cmName,
+      packetName: appState.currentSession.packetName,
+      packetANumber: appState.currentSession.packetANumber,
+      packetOrigin: appState.currentSession.packetOrigin,
+      timestamp: Date.now(),
+      duration,
+      ticGrade,
+      complianceScore: compliance,
+      safetyFailure: safetyFailed,
+      narrative,
+      ticBreakdown,
+    };
+
+    appState.sessions.push(sessionRecord);
+    localStorage.setItem('cm_sessions', JSON.stringify(appState.sessions));
+    appState.sessionActive = false;
+
+    // Try to save to Google Sheets (non-blocking)
+    saveToSheets(sessionRecord).catch(e => console.warn('Sheets save failed:', e));
+
+    hideLoading();
+
+    // Show audit modal
+    showAuditModal({ ticGrade, compliance, safetyFailed, duration, narrative, ticBreakdown });
+
+  } catch (err) {
+    hideLoading();
+    showToast('Audit error: ' + err.message);
+    console.error(err);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// AUDIT MODAL
+// ═══════════════════════════════════════════════════════
+const TIC_KEYS = ['Safety','Trustworthiness_Transparency','Peer_Support_Mutual_Self_Help','Collaboration_Mutuality','Empowerment_Voice_Choice','Humility_Responsiveness'];
+const TIC_LABELS = ['1. Safety','2. Trustworthiness & Transparency','3. Peer Support & Mutual Self-Help','4. Collaboration & Mutuality','5. Empowerment, Voice & Choice','6. Humility & Responsiveness'];
+
+function showAuditModal({ ticGrade, compliance, safetyFailed, duration, narrative, ticBreakdown }) {
+  document.getElementById('audit-tic').textContent        = ticGrade + '/6';
+  document.getElementById('audit-compliance').textContent = compliance + '%';
+  document.getElementById('audit-duration').textContent   = duration + ' min';
+
+  const badge = document.getElementById('audit-safety-badge');
+  badge.textContent = safetyFailed ? '✗ Safety Failed' : '✓ Safety Passed';
+  badge.className   = 'safety-badge ' + (safetyFailed ? 'fail' : 'pass');
+
+  // TIC breakdown
+  const grid = document.getElementById('audit-tic-grid');
+  grid.innerHTML = TIC_KEYS.map((k, i) => {
+    const d = ticBreakdown[k] || {};
+    const demonstrated = d.status === 'Demonstrated';
+    return `
+      <div class="tic-row">
+        <span class="tic-status">${demonstrated ? '✅' : '❌'}</span>
+        <div>
+          <div class="tic-name">${TIC_LABELS[i]}</div>
+          <div class="tic-evidence">${d.evidence || '—'}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('audit-narrative').textContent = narrative || 'No narrative generated.';
+  document.getElementById('audit-overlay').classList.add('open');
+}
+
+function closeAuditAndGoHome() {
+  document.getElementById('audit-overlay').classList.remove('open');
+  navigateTo('home');
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER MESSAGES
+// ═══════════════════════════════════════════════════════
+function renderMessages() {
+  const area = document.getElementById('messages-area');
+  area.innerHTML = appState.messages.map(m => {
+    const isChild = m.speaker === 'Child';
+    return `
+      <div class="msg-wrap ${isChild ? 'child' : 'cm'}">
+        ${isChild && m.cue ? `<div class="msg-behavioral">*${m.cue}*</div>` : ''}
+        <div class="msg-bubble">${escapeHtml(m.text)}</div>
+        <div class="msg-time">${isChild ? 'Child' : appState.cmName} · ${new Date(m.ts).toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'})}</div>
+      </div>
+    `;
+  }).join('');
+  area.scrollTop = area.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showTyping(show) {
+  const area = document.getElementById('messages-area');
+  const existing = area.querySelector('.typing-indicator');
+  if (show && !existing) {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-wrap child';
+    wrap.innerHTML = `<div class="typing-indicator"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+    area.appendChild(wrap);
+    area.scrollTop = area.scrollHeight;
+  } else if (!show && existing) {
+    existing.closest('.msg-wrap').remove();
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PACKET PANEL
+// ═══════════════════════════════════════════════════════
+function populatePacketPanel() {
+  const s = appState.currentSession;
+  document.getElementById('pkt-name').textContent     = s.packetName || '—';
+  document.getElementById('pkt-anum').textContent     = s.packetANumber || '—';
+  document.getElementById('pkt-dob').textContent      = s.packetDob || '—';
+  document.getElementById('pkt-origin').textContent   = s.packetOrigin || '—';
+  document.getElementById('pkt-medical').textContent  = s.packetMedical || '—';
+  document.getElementById('pkt-sponsor').textContent  = s.packetSponsorName || '—';
+  document.getElementById('pkt-rel').textContent      = s.packetSponsorRel || '—';
+  document.getElementById('pkt-phone').textContent    = s.packetSponsorPhone || '—';
+  document.getElementById('pkt-location').textContent = s.packetSponsorCity || '—';
+  document.getElementById('sim-child-label').textContent  = s.packetName || 'Intake Orientation';
+  document.getElementById('sim-location-label').textContent = s.sessionLocation || '';
+}
+
+// ═══════════════════════════════════════════════════════
+// RAPPORT UI
+// ═══════════════════════════════════════════════════════
+function updateRapportUI() {
+  const r    = appState.rapport;
+  const mood = getMoodFromRapport(r);
+  document.getElementById('rapport-pct').textContent  = r + '%';
+  document.getElementById('rapport-pct').style.color  = mood.color;
+  document.getElementById('rapport-bar').style.width  = r + '%';
+  document.getElementById('rapport-bar').style.background = mood.color;
+  document.getElementById('rapport-mood').textContent = mood.label;
+  document.getElementById('rapport-mood').style.color = mood.color;
+}
+
+// ═══════════════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════════════
+function updateTimer() {
+  if (!appState.sessionStartTime) return;
+  const elapsed = Math.floor((Date.now() - appState.sessionStartTime) / 1000);
+  const m = Math.floor(elapsed / 60).toString().padStart(2,'0');
+  const s = (elapsed % 60).toString().padStart(2,'0');
+  const display = `${m}:${s}`;
+  document.getElementById('sim-timer').textContent      = display;
+  document.getElementById('sim-timer-badge').textContent = display;
+}
+
+// ═══════════════════════════════════════════════════════
+// GOOGLE SHEETS SAVE
+// ═══════════════════════════════════════════════════════
+async function saveToSheets(record) {
+  if (!SHEETS_URL || SHEETS_URL === 'https://script.google.com/macros/s/AKfycbwkkyN2Pbki9lKafFE69-AO6nD_Fwn5i-wwdyCjSmU2eTpeWOioS4MrDS1vJorlSn4h/exec') return;
+  await fetch(SHEETS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(record),
+  });
+}
+</script>
+</body>
+</html>
