@@ -4006,11 +4006,25 @@ FACILITY RULES:
 - This is a call log only. Document ONLY: who was called, which attempt was successful, duration, and call outcome. Do NOT include what was discussed, the reason for the call, or any reference to case updates, sponsor information, or weekly check-in requirements.
 - callNarrative must follow this exact pattern: "[Child name] contacted [relationship] [name]. The call was [completed on attempt N / unsuccessful after N attempts]. [Duration if successful].". Nothing more.
 
-CALL OUTCOMES — randomize each week:
-1. SUCCESSFUL first attempt (50%): answered first try, 15–45 min.
-2. SUCCESSFUL multiple attempts (25%): 2–3 attempts, last succeeds, 15–30 min.
-3. DISCONNECTED (10%): answered but dropped before 15 min, reconnection attempt with outcome.
-4. NOT ANSWERED (15%): 3 attempts, no answer, all timestamps included.
+CALL OUTCOME — silently pick ONE of these 10 numbered slots before writing. Actively vary your pick call to call, do not default to slot 1:
+1. SUCCESSFUL first attempt
+2. SUCCESSFUL first attempt
+3. SUCCESSFUL first attempt
+4. SUCCESSFUL first attempt
+5. SUCCESSFUL multiple attempts (2–3 tries, last succeeds)
+6. SUCCESSFUL multiple attempts (2–3 tries, last succeeds)
+7. DISCONNECTED: answered, dropped between 3–14 min, reconnect attempt 1–5 min later (may succeed or fail)
+8. NOT ANSWERED: 3 attempts, no answer, all timestamps included
+9. NOT ANSWERED: 3 attempts, no answer, all timestamps included
+10. SUCCESSFUL multiple attempts (2–3 tries, last succeeds)
+
+DURATION for any SUCCESSFUL outcome — pick one, rotate away from your recent picks, do not cluster near 20-22: 12, 14, 17, 19, 23, 26, 29, 31, 34, 37, 41, 44 minutes.
+
+CALL START TIME — spread across the full 8:00 AM–5:00 PM CST window, vary the minute not just the hour, do not default to :00 or :15.
+
+ATTEMPT GAP (multiple attempts) — vary between 2, 3, or 4 minutes per gap.
+
+DISCONNECTED CALLS — a call under 15 minutes must include a plain factual reason. Pick one, or vary similarly: "child stated they did not want to continue talking," "child became upset and ended the call," "contacted person stated they needed to leave," "child said contacted person had to go," "contacted person's phone lost signal mid-call." State the reason plainly in callNarrative as a factual log entry — do not add emotional interpretation or speculation about why.
 
 PARENTING PROTOCOL: If pregnancyStatus is Pregnant or Parenting, generate a second call under parentingProtocolCall using same randomization.
 
